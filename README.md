@@ -4,7 +4,7 @@
 
 ### 2.RxAndroidUtils等工具类
 
-### 3.RecycleView的分组拖拽排序的BaseCategoryAdapter，侧滑关闭Activity的SwipeBackLayout
+### 3.RecycleView的分组拖拽排序的BaseCategoryAdapter，侧滑关闭Activity的SwipeBackLayout,SwipeMenuLayout
 
 ## How to use
 
@@ -16,6 +16,8 @@ allprojects {
 	}
   
   dependencies {
-          annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'//不加这个使用butterknife会报错
+          implementation com.jakewharton:butterknife:8.6.0//注意
+        使用butterknife不需要在Activity（Fragment）的onCreate（）中bind 直接 使用即可 annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'//不加这个使用butterknife会报错
+	  
 	        compile 'com.github.congxc:RSLib:v1.0.0'
 	}
