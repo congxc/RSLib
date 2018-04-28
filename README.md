@@ -19,5 +19,5 @@ allprojects {
           implementation com.jakewharton:butterknife:8.6.0//注意
         使用butterknife不需要在Activity（Fragment）的onCreate（）中bind 直接 使用即可 annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'//不加这个使用butterknife会报错
 	  
-	        compile 'com.github.congxc:RSLib:v1.0.0'
+	        compile 'com.github.congxc:RSLib:v1.0.1'
 	}
