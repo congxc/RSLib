@@ -10,6 +10,7 @@ import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.trello.rxlifecycle2.android.FragmentEvent;
 import com.trello.rxlifecycle2.android.RxLifecycleAndroid;
 
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import io.reactivex.FlowableSubscriber;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.Subject;
 import io.reactivex.subscribers.ResourceSubscriber;
@@ -35,6 +37,20 @@ import io.reactivex.subscribers.ResourceSubscriber;
 public class RxAndroidUtils {
 
     private static Map<String,ResourceSubscriber> mResourceSubscriberMap = new HashMap<>();
+
+    private static <T> LifecycleTransformer<T> getLifeTransformer(Lifecycleable lifecycleable){
+        LifecycleTransformer<T> transformer = null;
+        if (lifecycleable instanceof ActivityLifecycleable) {
+            Subject<ActivityEvent> lifecycleSubject = ((ActivityLifecycleable) lifecycleable).provideLifecycleSubject();
+            transformer = RxLifecycleAndroid.bindActivity(lifecycleSubject);
+        }else if(lifecycleable instanceof FragmentLifecycleable){
+            Subject<FragmentEvent> lifecycleSubject = ((FragmentLifecycleable) lifecycleable).provideLifecycleSubject();
+            transformer = RxLifecycleAndroid.bindFragment(lifecycleSubject);
+        }else{
+            throw new TypeNotPresentException("activity or fragment type",new Exception("your activity or fragment type error"));
+        }
+        return transformer;
+    }
 
     /*******************简化方法*******************************************************************/
     /**
@@ -56,16 +72,7 @@ public class RxAndroidUtils {
      * @param <T>
      */
     public static <T> void createSimpleFlowable(Lifecycleable lifecycleable,SimpleFlowableOnSubscribe<T> onSubscribe, SimpleDisposableSubscriber<T> subscriber){
-        LifecycleTransformer<T> transformer = null;
-        if (lifecycleable instanceof ActivityLifecycleable) {
-            Subject<ActivityEvent> lifecycleSubject = ((ActivityLifecycleable) lifecycleable).provideLifecycleSubject();
-            transformer = RxLifecycleAndroid.bindActivity(lifecycleSubject);
-        }else if(lifecycleable instanceof FragmentLifecycleable){
-            Subject<FragmentEvent> lifecycleSubject = ((FragmentLifecycleable) lifecycleable).provideLifecycleSubject();
-            transformer = RxLifecycleAndroid.bindFragment(lifecycleSubject);
-        }else{
-            throw new TypeNotPresentException("activity or fragment type",new Exception("your activity or fragment type error"));
-        }
+        LifecycleTransformer<T> transformer = getLifeTransformer(lifecycleable);
         Flowable.create(onSubscribe, BackpressureStrategy.BUFFER)
                 .subscribeOn(Schedulers.io())
                 .compose(transformer)
@@ -83,6 +90,35 @@ public class RxAndroidUtils {
         LifecycleTransformer<T> transformer = RxLifecycleAndroid.bindView(view);
         Flowable.create(onSubscribe, BackpressureStrategy.BUFFER)
                 .subscribeOn(Schedulers.io())
+                .compose(transformer)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(subscriber);
+    }
+    public static <T,R> void createSimpleMapFlowable(FlowableOnSubscribe<T> onSubscribe
+            , final FlowableOnSubscribe<R> rFlowableOnSubscribe, SimpleDisposableSubscriber<R> subscriber){
+        Flowable.create(onSubscribe,BackpressureStrategy.BUFFER)
+                .subscribeOn(Schedulers.io())
+                .flatMap(new Function<T, Publisher<R>>() {
+                    @Override
+                    public Publisher<R> apply(T t) throws Exception {
+                        return Flowable.create(rFlowableOnSubscribe,BackpressureStrategy.BUFFER);
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(subscriber);
+    }
+
+    public static <T,R> void createSimpleMapFlowable(Lifecycleable lifecycleable, FlowableOnSubscribe<T> onSubscribe
+            , final FlowableOnSubscribe<R> rFlowableOnSubscribe, SimpleDisposableSubscriber<R> subscriber){
+        LifecycleTransformer<R> transformer = getLifeTransformer(lifecycleable);
+        Flowable.create(onSubscribe,BackpressureStrategy.BUFFER)
+                .subscribeOn(Schedulers.io())
+                .flatMap(new Function<T, Publisher<R>>() {
+                    @Override
+                    public Publisher<R> apply(T t) throws Exception {
+                        return Flowable.create(rFlowableOnSubscribe,BackpressureStrategy.BUFFER);
+                    }
+                })
                 .compose(transformer)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber);
@@ -163,16 +199,7 @@ public class RxAndroidUtils {
      * @param <T>
      */
     public static <T> void createLifecycleFlowable(Lifecycleable lifecycleable,FlowableOnSubscribe<T> onSubscribe, FlowableSubscriber<T> subscriber){
-        LifecycleTransformer<T> transformer = null;
-        if (lifecycleable instanceof ActivityLifecycleable) {
-            Subject<ActivityEvent> lifecycleSubject = ((ActivityLifecycleable) lifecycleable).provideLifecycleSubject();
-            transformer = RxLifecycleAndroid.bindActivity(lifecycleSubject);
-        }else if(lifecycleable instanceof FragmentLifecycleable){
-            Subject<FragmentEvent> lifecycleSubject = ((FragmentLifecycleable) lifecycleable).provideLifecycleSubject();
-            transformer = RxLifecycleAndroid.bindFragment(lifecycleSubject);
-        }else{
-            throw new TypeNotPresentException("activity or fragment type",new Exception("your activity or fragment type error"));
-        }
+        LifecycleTransformer<T> transformer = getLifeTransformer(lifecycleable);
 
         Flowable.create(onSubscribe, BackpressureStrategy.BUFFER)
                 .subscribeOn(Schedulers.io())
@@ -183,16 +210,7 @@ public class RxAndroidUtils {
 
     public static <T> void createLifecycleFlowable(Lifecycleable lifecycleable,FlowableOnSubscribe<T> onSubscribe,
                                           FlowableSubscriber<T> subscriber,Consumer<Subscription> onStart){
-        LifecycleTransformer<T> transformer = null;
-        if (lifecycleable instanceof ActivityLifecycleable) {
-            Subject<ActivityEvent> lifecycleSubject = ((ActivityLifecycleable) lifecycleable).provideLifecycleSubject();
-            transformer = RxLifecycleAndroid.bindActivity(lifecycleSubject);
-        }else if(lifecycleable instanceof FragmentLifecycleable){
-            Subject<FragmentEvent> lifecycleSubject = ((FragmentLifecycleable) lifecycleable).provideLifecycleSubject();
-            transformer = RxLifecycleAndroid.bindFragment(lifecycleSubject);
-        }else{
-            throw new TypeNotPresentException("activity or fragment type",new Exception("your activity or fragment type error"));
-        }
+        LifecycleTransformer<T> transformer = getLifeTransformer(lifecycleable);
 
         Flowable.create(onSubscribe, BackpressureStrategy.BUFFER)
                 .subscribeOn(Schedulers.io())

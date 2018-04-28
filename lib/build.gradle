@@ -29,7 +29,7 @@ dependencies {
   //  testImplementation rootProject.ext.support.junit
 
     /*butternife*/
-    compile rootProject.ext.ext_tools.butterknife
+    implementation rootProject.ext.ext_tools.butterknife
     annotationProcessor rootProject.ext.ext_tools.butterknife_compiler
 
 //    implementation rootProject.ext.ext_tools.utilcode
