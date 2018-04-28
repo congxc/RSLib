@@ -8,6 +8,8 @@
 
 ## How to use
 
+[![](https://jitpack.io/v/congxc/RSLib.svg)](https://jitpack.io/#congxc/RSLib)
+
 allprojects {
 		repositories {
 			...
