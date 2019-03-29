@@ -112,17 +112,31 @@ public abstract class RSBaseActivity extends AppCompatActivity implements Activi
         if (mContainerView != null) {
             if (mLoadingView == null) {
                 mLoadingView = View.inflate(this, loadingView, null);
-                mLoadingView.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        return true;
-                    }
-                });
+                if (!clickableLoadingState()){
+                    mLoadingView.setOnTouchListener(new View.OnTouchListener() {
+                        @Override
+                        public boolean onTouch(View v, MotionEvent event) {
+                            return true;
+                        }
+                    });
+                }
                 mContainerView.addView(mLoadingView);
             }
             mContainerView.bringChildToFront(mLoadingView);
             mLoadingView.setVisibility(View.VISIBLE);
         }
+    }
+
+    public View getLoadingView() {
+        return mLoadingView;
+    }
+
+    public View getEmptyView() {
+        return mEmptyView;
+    }
+
+    public boolean clickableLoadingState(){
+        return false;
     }
 
     public void showEmptyView(int emptyView) {

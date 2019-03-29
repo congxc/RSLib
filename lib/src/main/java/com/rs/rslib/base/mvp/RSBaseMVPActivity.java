@@ -32,8 +32,8 @@ import io.reactivex.subjects.Subject;
  * lastUpdate time: 2018/1/17 11:28
  */
 
-public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IModel>  extends AppCompatActivity
-        implements ActivityLifecycleable,IActivity{
+public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IModel> extends AppCompatActivity
+        implements ActivityLifecycleable, IActivity {
 
     protected P mPresenter;
     protected M mModel;
@@ -67,14 +67,14 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
         bindEventListener();
     }
 
-    protected  void init(){
+    protected void init() {
         //初始化presenter 和 model
         try {
             Class<P> presenterClass = getPresenterClass();
             if (presenterClass != null) {
                 mPresenter = presenterClass.newInstance();
-            }else {
-                LogUtils.error("rs"+ getClass().getCanonicalName(), " presenterClass is null" );
+            } else {
+                LogUtils.error("rs" + getClass().getCanonicalName(), " presenterClass is null");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -84,8 +84,8 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
             Class<M> modelClass = getModelClass();
             if (modelClass != null) {
                 mModel = modelClass.newInstance();
-            }else {
-                LogUtils.error("rs"+ getClass().getCanonicalName(), " modelClass  is null" );
+            } else {
+                LogUtils.error("rs" + getClass().getCanonicalName(), " modelClass  is null");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -100,6 +100,7 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
     protected boolean showToolbar() {
         return false;
     }
+
     private void initContentView() {
         if (getLayoutResId() != 0) {
             mContainerView = new FrameLayout(this);
@@ -108,12 +109,12 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
             if (showToolbar() && getToolbarLayoutId() != 0) {
                 View contentView = View.inflate(this, getLayoutResId(), null);
                 mContainerView.addView(contentView);
-                View toolBarView = View.inflate(this,getToolbarLayoutId(), null);
+                View toolBarView = View.inflate(this, getToolbarLayoutId(), null);
                 mContainerView.addView(toolBarView);
                 if (getToolBarId() != 0) {
                     mToolbar = (Toolbar) toolBarView.findViewById(getToolBarId());
                     setSupportActionBar(mToolbar);
-                }else{
+                } else {
                     throw new NullPointerException("Toolbar id is null");
                 }
             } else {
@@ -121,7 +122,7 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
                 mContainerView.addView(contentView);
             }
             setContentView(mContainerView);
-            mUnbinder = ButterKnife.bind(this,mContainerView);
+            mUnbinder = ButterKnife.bind(this, mContainerView);
         }
     }
 
@@ -185,7 +186,6 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
     }
 
 
-
     public void showLoadView(int loadingView) {
         if (mEmptyView != null) {
             mEmptyView.setVisibility(View.GONE);
@@ -193,17 +193,31 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
         if (mContainerView != null) {
             if (mLoadingView == null) {
                 mLoadingView = View.inflate(this, loadingView, null);
-                mLoadingView.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        return true;
-                    }
-                });
+                if (!clickableLoadingState()) {
+                    mLoadingView.setOnTouchListener(new View.OnTouchListener() {
+                        @Override
+                        public boolean onTouch(View v, MotionEvent event) {
+                            return true;
+                        }
+                    });
+                }
                 mContainerView.addView(mLoadingView);
             }
             mContainerView.bringChildToFront(mLoadingView);
             mLoadingView.setVisibility(View.VISIBLE);
         }
+    }
+
+    public View getLoadingView() {
+        return mLoadingView;
+    }
+
+    public View getEmptyView() {
+        return mEmptyView;
+    }
+
+    public boolean clickableLoadingState() {
+        return false;
     }
 
     public void showEmptyView(int emptyView) {
@@ -230,24 +244,26 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
     public int getToolBarId() {
         return 0;
     }
+
     @Override
-    public int getToolbarLayoutId(){
+    public int getToolbarLayoutId() {
         return 0;
     }
 
     protected abstract void initViews(Bundle savedInstanceState);
 
-    public  void loadData(Bundle savedInstanceState){
+    public void loadData(Bundle savedInstanceState) {
 
     }
 
-    public  void bindEventListener(){
+    public void bindEventListener() {
 
     }
 
     protected abstract Class<M> getModelClass();
 
     protected abstract Class<P> getPresenterClass();
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -298,11 +314,12 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
      * 显示软键盘  系統強制显示软键盘方法 v为获得焦点的View
      */
     public static void showSoftInputBord(final View view) {
-        if (view != null){
+        if (view != null) {
             ((InputMethodManager) view.getContext().getSystemService(INPUT_METHOD_SERVICE))
-                    .hideSoftInputFromWindow(view.getWindowToken(),0);
+                    .hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
+
     /**
      * 隐藏软键盘  系統強制关闭软键盘方法 v为获得焦点的View
      */

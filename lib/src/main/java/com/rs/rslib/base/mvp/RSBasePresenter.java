@@ -7,17 +7,27 @@ import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.OnLifecycleEvent;
 import android.support.v4.app.Fragment;
 
+import com.rs.rslib.interfaces.ActivityLifecycleable;
+import com.rs.rslib.interfaces.FragmentLifecycleable;
 import com.rs.rslib.interfaces.Lifecycleable;
 import com.rs.rslib.utils.rx.RxAndroidUtils;
 import com.rs.rslib.utils.rx.SimpleDisposableSubscriber;
 import com.rs.rslib.utils.rx.SimpleFlowableOnSubscribe;
 import com.rs.rslib.utils.rx.SimpleFlowableSubsriber;
+import com.trello.rxlifecycle2.LifecycleTransformer;
+import com.trello.rxlifecycle2.android.RxLifecycleAndroid;
 
 import org.reactivestreams.Subscription;
 
+import java.util.concurrent.Executors;
+
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * author: xiecong
@@ -107,4 +117,65 @@ public abstract class RSBasePresenter<M extends IModel, V extends IView> impleme
             }
         });
     }
+
+    /**
+     * 绑定 Activity/Fragment 的生命周期
+     *
+     * @param view
+     * @return
+     */
+    public <T> LifecycleTransformer<T> bindToLifecycle(@NonNull IView view) {
+        if (view instanceof Lifecycleable) {
+            return bindToLifecycle((Lifecycleable) view);
+        } else {
+            throw new IllegalArgumentException("view isn't Lifecycleable");
+        }
+    }
+    public <T> LifecycleTransformer<T> bindToLifecycle(@NonNull Lifecycleable lifecycleable) {
+        if (lifecycleable instanceof ActivityLifecycleable) {
+            return RxLifecycleAndroid.bindActivity(((ActivityLifecycleable) lifecycleable).provideLifecycleSubject());
+        } else if (lifecycleable instanceof FragmentLifecycleable) {
+            return RxLifecycleAndroid.bindFragment(((FragmentLifecycleable) lifecycleable).provideLifecycleSubject());
+        } else {
+            throw new IllegalArgumentException("Lifecycleable not match");
+        }
+    }
+    /**
+     * @param flowable
+     * @param onNextSumer
+     * @param throwableConsumer
+     * @param <T>
+     * 执行异步任务
+     */
+    public  <T> void excuteFlowable(Flowable<T> flowable, Consumer<T> onNextSumer, Consumer<Throwable> throwableConsumer){
+        LifecycleTransformer<T> transformer = bindToLifecycle(mRootView);
+        flowable
+                .subscribeOn(Schedulers.from(Executors.newFixedThreadPool(10)))
+                .compose(transformer)
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe(new Consumer<Subscription>() {
+                    @Override
+                    public void accept(Subscription subscription) throws Exception {
+                        mRootView.showLoading();
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(onNextSumer, throwableConsumer);
+    }
+    /**
+     * @param flowable
+     * @param onNextSumer
+     * @param throwableConsumer
+     * @param <T>
+     * 执行异步任务
+     */
+    public  <T> void excuteFlowableNotLoading(Flowable<T> flowable, Consumer<T> onNextSumer, Consumer<Throwable> throwableConsumer){
+        LifecycleTransformer<T> transformer = bindToLifecycle(mRootView);
+        flowable
+                .subscribeOn(Schedulers.from(Executors.newFixedThreadPool(10)))
+                .compose(transformer)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(onNextSumer, throwableConsumer);
+    }
+
 }
