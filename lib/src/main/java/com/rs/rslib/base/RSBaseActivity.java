@@ -20,6 +20,8 @@ import com.rs.rslib.interfaces.ActivityLifecycleable;
 import com.rs.rslib.interfaces.IActivity;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 
+import java.util.HashMap;
+
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import io.reactivex.annotations.Nullable;
@@ -39,6 +41,7 @@ public abstract class RSBaseActivity extends AppCompatActivity implements Activi
     private View mLoadingView;
     private View mEmptyView;
     private long mLastClickTime = 0;
+    private HashMap<Integer,View> mCustomViewContainer = new HashMap<>();
 
     private BehaviorSubject<ActivityEvent> mActivityEventBehaviorSubject = BehaviorSubject.create();
 
@@ -102,6 +105,20 @@ public abstract class RSBaseActivity extends AppCompatActivity implements Activi
             }
             setContentView(mContainerView);
             mUnbinder = ButterKnife.bind(this,mContainerView);
+        }
+    }
+
+    public void showCustomView(int view){
+        if (mContainerView != null) {
+            View custom;
+            if (!mCustomViewContainer.containsKey(view)) {
+                custom = View.inflate(this, view, null);
+                mContainerView.addView(custom);
+                mCustomViewContainer.put(view,custom);
+            }else{
+                custom = mCustomViewContainer.get(view);
+            }
+            mContainerView.bringChildToFront(custom);
         }
     }
 
@@ -182,6 +199,9 @@ public abstract class RSBaseActivity extends AppCompatActivity implements Activi
         super.onDestroy();
         if (mUnbinder != null) {
             mUnbinder.unbind();
+        }
+        if (mCustomViewContainer != null) {
+            mCustomViewContainer.clear();
         }
         mActivityEventBehaviorSubject.onNext(ActivityEvent.DESTROY);
     }

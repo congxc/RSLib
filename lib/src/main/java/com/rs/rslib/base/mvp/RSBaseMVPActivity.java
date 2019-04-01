@@ -21,6 +21,8 @@ import com.rs.rslib.interfaces.IActivity;
 import com.rs.rslib.utils.LogUtils;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 
+import java.util.HashMap;
+
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import io.reactivex.subjects.BehaviorSubject;
@@ -44,6 +46,7 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
     private View mLoadingView;
     private View mEmptyView;
     private long mLastClickTime = 0;
+    private HashMap<Integer,View> mCustomViewContainer = new HashMap<>();
 
     //以此绑定activty生命周期
     private BehaviorSubject<ActivityEvent> mActivityEventBehaviorSubject = BehaviorSubject.create();
@@ -161,6 +164,9 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
         if (mPresenter != null) {
             mPresenter.detachVM();
         }
+        if (mCustomViewContainer != null) {
+            mCustomViewContainer.clear();
+        }
         mPresenter = null;
         mActivityEventBehaviorSubject.onNext(ActivityEvent.DESTROY);
     }
@@ -208,19 +214,11 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
         }
     }
 
-    public View getLoadingView() {
-        return mLoadingView;
-    }
-
-    public View getEmptyView() {
-        return mEmptyView;
-    }
-
     public boolean clickableLoadingState() {
         return false;
     }
 
-    public void showEmptyView(int emptyView) {
+    public View showEmptyView(int emptyView) {
         if (mContainerView != null) {
             if (mEmptyView == null) {
                 mEmptyView = View.inflate(this, emptyView, null);
@@ -229,6 +227,25 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
             mContainerView.bringChildToFront(mEmptyView);
             mEmptyView.setVisibility(View.VISIBLE);
         }
+        return mEmptyView;
+    }
+
+    public void showCustomView(int view){
+        if (mContainerView != null) {
+            View custom;
+            if (!mCustomViewContainer.containsKey(view)) {
+                custom = View.inflate(this, view, null);
+                mContainerView.addView(custom);
+                mCustomViewContainer.put(view,custom);
+            }else{
+                custom = mCustomViewContainer.get(view);
+            }
+            mContainerView.bringChildToFront(custom);
+        }
+    }
+
+    public View getCustomView(int viewId){
+        return mCustomViewContainer.get(viewId);
     }
 
     public void showContentView() {
