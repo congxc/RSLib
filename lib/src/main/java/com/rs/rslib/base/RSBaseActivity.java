@@ -21,6 +21,8 @@ import com.rs.rslib.interfaces.IActivity;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
@@ -108,20 +110,6 @@ public abstract class RSBaseActivity extends AppCompatActivity implements Activi
         }
     }
 
-    public void showCustomView(int view){
-        if (mContainerView != null) {
-            View custom;
-            if (!mCustomViewContainer.containsKey(view)) {
-                custom = View.inflate(this, view, null);
-                mContainerView.addView(custom);
-                mCustomViewContainer.put(view,custom);
-            }else{
-                custom = mCustomViewContainer.get(view);
-            }
-            mContainerView.bringChildToFront(custom);
-        }
-    }
-
     public void showLoadView(int loadingView) {
         if (mEmptyView != null) {
             mEmptyView.setVisibility(View.GONE);
@@ -156,14 +144,28 @@ public abstract class RSBaseActivity extends AppCompatActivity implements Activi
         return false;
     }
 
-    public void showEmptyView(int emptyView) {
+    public void showCustomView(int view){
         if (mContainerView != null) {
-            if (mEmptyView == null) {
-                mEmptyView = View.inflate(this, emptyView, null);
-                mContainerView.addView(mEmptyView);
+            View custom;
+            if (!mCustomViewContainer.containsKey(view)) {
+                custom = View.inflate(this, view, null);
+                mContainerView.addView(custom);
+                mCustomViewContainer.put(view,custom);
+            }else{
+                custom = mCustomViewContainer.get(view);
+                custom.setVisibility(View.VISIBLE);
             }
-            mContainerView.bringChildToFront(mEmptyView);
-            mEmptyView.setVisibility(View.VISIBLE);
+            mContainerView.bringChildToFront(custom);
+        }
+    }
+
+    public void hideAllCustomView(){
+        if (mCustomViewContainer != null) {
+            Set<Map.Entry<Integer, View>> entries = mCustomViewContainer.entrySet();
+            for (Map.Entry<Integer, View> entry : entries) {
+                View value = entry.getValue();
+                value.setVisibility(View.GONE);
+            }
         }
     }
 

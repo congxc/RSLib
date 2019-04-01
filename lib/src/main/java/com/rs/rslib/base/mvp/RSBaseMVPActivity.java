@@ -22,6 +22,8 @@ import com.rs.rslib.utils.LogUtils;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
@@ -239,8 +241,19 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
                 mCustomViewContainer.put(view,custom);
             }else{
                 custom = mCustomViewContainer.get(view);
+                custom.setVisibility(View.VISIBLE);
             }
             mContainerView.bringChildToFront(custom);
+        }
+    }
+
+    public void hideAllCustomView(){
+        if (mCustomViewContainer != null) {
+            Set<Map.Entry<Integer, View>> entries = mCustomViewContainer.entrySet();
+            for (Map.Entry<Integer, View> entry : entries) {
+                View value = entry.getValue();
+                value.setVisibility(View.GONE);
+            }
         }
     }
 
