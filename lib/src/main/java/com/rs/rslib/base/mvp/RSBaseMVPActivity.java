@@ -257,6 +257,12 @@ public abstract class RSBaseMVPActivity<P extends RSBasePresenter, M extends IMo
         }
     }
 
+    public void bringChildToFront(View child){
+        if (mContainerView != null) {
+            mContainerView.bringChildToFront(child);
+        }
+    }
+
     public View getCustomView(int viewId){
         return mCustomViewContainer.get(viewId);
     }

@@ -132,12 +132,10 @@ public abstract class RSBaseActivity extends AppCompatActivity implements Activi
         }
     }
 
-    public View getLoadingView() {
-        return mLoadingView;
-    }
-
-    public View getEmptyView() {
-        return mEmptyView;
+    public void bringChildToFront(View child){
+        if (mContainerView != null) {
+            mContainerView.bringChildToFront(child);
+        }
     }
 
     public boolean clickableLoadingState(){
