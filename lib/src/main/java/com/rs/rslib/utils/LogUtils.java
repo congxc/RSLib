@@ -14,6 +14,9 @@ public class LogUtils {
     private static boolean isDebug = true;
     private static String debugTag = "rs.shieh:";
 
+    public static void setDebug(boolean isDebug){
+        this.isDebug = isDebug;
+    }
     /**
      * Debug.
      *
