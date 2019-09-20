@@ -11,7 +11,7 @@ import java.io.StringWriter;
 public class LogUtils {
     private static final int MAX_STACK_TRACE_SIZE = 131071; //128 KB - 1
     // 是否开启日志输出,在Debug状态下开启，在Release状态下关闭以提高程序性能，避免日志被人抓取
-    private static boolean isDebug = true;
+    public static boolean isDebug = true;
     private static String debugTag = "rs.shieh:";
 
     public static void setDebug(boolean isDebug){
